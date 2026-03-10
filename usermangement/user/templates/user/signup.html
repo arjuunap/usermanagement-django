@@ -346,7 +346,7 @@
                 <!-- <p class="subtitle">Join us and start your journey today</p> -->
             </div>
 
-            <form action="{% url 'user:signup' %}" method="POST">
+            <form action="{% url 'user:signup' %}" method="POST" novalidate>
                 {% csrf_token %}
 
                 {% if form.non_field_errors %}

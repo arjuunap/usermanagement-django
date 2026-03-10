@@ -10,7 +10,7 @@ from django.core.paginator import Paginator
 @cache_control(no_cache=True,no_store=True,must_revalidate=True)
 @login_required(login_url='adminpanel:login')
 def admin_panel(request):
-    search = request.GET.get('search', '')
+    search = request.GET.get('search','')
     users = Custom_user.objects.filter(is_superuser= False).order_by('id')
     if search:
         users = Custom_user.objects.filter(

@@ -50,4 +50,5 @@ def signup(request):
 
 def logout_view(request):
     logout(request)
+    # messages.success(request,"logout successfully")
     return redirect("user:login")
