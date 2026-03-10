@@ -1,81 +1,479 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>User Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'adminpanel/css/admin_panel.css' %}">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0d0f14;
+            --surface: #13161d;
+            --surface2: #1a1e28;
+            --border: #252a38;
+            --accent: #4f8ef7;
+            --accent-dim: rgba(79,142,247,0.12);
+            --green: #3ecf6e;
+            --red: #f75050;
+            --text: #e8eaf0;
+            --muted: #6b7280;
+            --radius: 10px;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Mono', monospace;
+            min-height: 100vh;
+        }
+
+        /* HEADER */
+        header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(8px);
+        }
+
+        .header-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            height: 68px;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .header-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            white-space: nowrap;
+            color: var(--text);
+        }
+
+        .header-title span {
+            color: var(--accent);
+        }
+
+        /* SEARCH */
+        .search-form {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0 0.75rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            max-width: 380px;
+        }
+
+        .search-form:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(79,142,247,0.15);
+        }
+
+        .search-icon {
+            color: var(--muted);
+            flex-shrink: 0;
+            font-size: 0.85rem;
+        }
+
+        .search-form input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text);
+            font-family: 'DM Mono', monospace;
+            font-size: 0.8rem;
+            width: 100%;
+            padding: 0.65rem 0;
+        }
+
+        .search-form input::placeholder { color: var(--muted); }
+
+        .search-form button {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 0.35rem 0.75rem;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.72rem;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: opacity 0.15s;
+            flex-shrink: 0;
+        }
+
+        .search-form button:hover { opacity: 0.85; }
+
+        .logout-btn {
+            background: transparent;
+            color: var(--muted);
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            padding: 0.4rem 1rem;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.75rem;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: color 0.2s, border-color 0.2s;
+            flex-shrink: 0;
+        }
+
+        .logout-btn:hover { color: var(--red); border-color: var(--red); }
+
+        /* MAIN */
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* META BAR */
+        .meta-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .meta-count {
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+
+        .meta-count strong { color: var(--accent); }
+
+        .search-tag {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: var(--accent-dim);
+            border: 1px solid rgba(79,142,247,0.25);
+            border-radius: 20px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.72rem;
+            color: var(--accent);
+        }
+
+        .search-tag a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.85em;
+            transition: color 0.15s;
+        }
+
+        .search-tag a:hover { color: var(--red); }
+
+        /* TABLE */
+        .table-wrapper {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: var(--surface2);
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            padding: 0.85rem 1.25rem;
+            text-align: left;
+            font-size: 0.68rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
+        }
+
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: var(--surface2); }
+
+        td {
+            padding: 0.9rem 1.25rem;
+            font-size: 0.8rem;
+            vertical-align: middle;
+        }
+
+        .user-id { color: var(--muted); font-size: 0.72rem; }
+        .user-email { color: var(--text); }
+        .user-name { color: var(--text); font-weight: 500; }
+
+        /* BADGES */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.25rem 0.65rem;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-active {
+            background: rgba(62,207,110,0.12);
+            color: var(--green);
+            border: 1px solid rgba(62,207,110,0.25);
+        }
+
+        .status-active .status-dot { background: var(--green); }
+
+        .status-blocked {
+            background: rgba(247,80,80,0.1);
+            color: var(--red);
+            border: 1px solid rgba(247,80,80,0.2);
+        }
+
+        .status-blocked .status-dot { background: var(--red); }
+
+        /* ACTIONS */
+        .actions { display: flex; gap: 0.5rem; }
+
+        .action-btn {
+            padding: 0.3rem 0.7rem;
+            border-radius: 6px;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: opacity 0.15s, transform 0.1s;
+            border: 1px solid transparent;
+        }
+
+        .action-btn:hover { opacity: 0.8; transform: translateY(-1px); }
+
+        .btn-block {
+            background: rgba(62,207,110,0.12);
+            color: var(--green);
+            border-color: rgba(62,207,110,0.25);
+        }
+
+        .btn-unblock {
+            background: rgba(247,80,80,0.1);
+            color: var(--red);
+            border-color: rgba(247,80,80,0.2);
+        }
+
+        .btn-edit {
+            background: var(--accent-dim);
+            color: var(--accent);
+            border-color: rgba(79,142,247,0.25);
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+
+        /* PAGINATION */
+        .pagination-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 1.25rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .pagination-info {
+            font-size: 0.72rem;
+            color: var(--muted);
+        }
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .page-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 32px;
+            height: 32px;
+            padding: 0 0.5rem;
+            border-radius: 7px;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.75rem;
+            text-decoration: none;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            background: var(--surface);
+            transition: all 0.15s;
+        }
+
+        .page-btn:hover {
+            color: var(--text);
+            border-color: var(--accent);
+            background: var(--accent-dim);
+        }
+
+        .page-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .page-btn.disabled {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .page-ellipsis {
+            color: var(--muted);
+            font-size: 0.75rem;
+            padding: 0 0.25rem;
+        }
+    </style>
 </head>
-{% load static %}
-<link rel="stylesheet" href="{% static 'adminpanel/css/admin_panel.css' %}">
 
 <body>
     <header>
         <div class="header-wrapper">
-            <h1 class="header-title">User Management</h1>
+            <h1 class="header-title">User<span>Mgmt</span></h1>
+            <form method="get" action="" class="search-form">
+                <span class="search-icon">⌕</span>
+                <input type="text" name="search" placeholder="Search by email or username…" value="{{ search }}">
+                <button type="submit">Search</button>
+            </form>
             <a href="{% url 'adminpanel:logout' %}" class="logout-btn">Logout</a>
         </div>
     </header>
 
     <main>
-        <div class="container">
-            <div class="table-wrapper">
-                {% if users %}
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Email</th>
-                            <th>Username</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for user in users %}
-                        <tr>
-                            <td>#{{ user.id }}</td>
-                            <td>{{ user.email }}</td>
-                            <td>
-                                <strong>{{ user.username }}</strong>
-                            </td>
-                            <td>
-                                {% if user.is_active %}
-                                    <span class="status-badge status-active">
-                                        <span class="status-dot"></span>
-                                        Active
-                                    </span>
-                                {% else %}
-                                    <span class="status-badge status-blocked">
-                                        <span class="status-dot"></span>
-                                        Blocked
-                                    </span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <div class="actions">
-                                    {% if user.is_active %}
-                                        <a href="" class="action-btn btn-block">Block</a>
-                                    {% else %}
-                                        <a href="" class="action-btn btn-unblock">Unblock</a>
-                                    {% endif %}
-                                    <a href="{% url 'adminpanel:edit-user' user.id %}" class="action-btn btn-edit">Edit</a>
-                                    <a href="" class="action-btn btn-delete">Delete</a>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% else %}
-                <div class="empty-state">
-                    <p>No users found</p>
-                </div>
-                {% endif %}
-            </div>
+        <div class="meta-bar">
+            <p class="meta-count">
+                <strong>{{ page_obj.paginator.count }}</strong> user{{ page_obj.paginator.count|pluralize }} found
+            </p>
+            {% if search %}
+            <span class="search-tag">
+                "{{ search }}"
+                <a href="{% url 'adminpanel:admin-panel' %}" title="Clear search">✕</a>
+            </span>
+            {% endif %}
         </div>
+
+        <div class="table-wrapper">
+            {% if users %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Email</th>
+                        <th>Username</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td class="user-id">#{{ user.id }}</td>
+                        <td class="user-email">{{ user.email }}</td>
+                        <td class="user-name">{{ user.username }}</td>
+                        <td>
+                            {% if user.is_blocked %}
+                            <span class="status-badge status-blocked">
+                                <span class="status-dot"></span>Blocked
+                            </span>
+                            {% else %}
+                            <span class="status-badge status-active">
+                                <span class="status-dot"></span>Active
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="actions">
+                                {% if user.is_blocked %}
+                                <a href="{% url 'adminpanel:permission' user.id %}" class="action-btn btn-block">Unblock</a>
+                                {% else %}
+                                <a href="{% url 'adminpanel:permission' user.id %}" class="action-btn btn-unblock">Block</a>
+                                {% endif %}
+                                <a href="{% url 'adminpanel:edit-user' user.id %}" class="action-btn btn-edit">Edit</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <p>No users found{% if search %} for "{{ search }}"{% endif %}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if page_obj.paginator.num_pages > 1 %}
+        <div class="pagination-wrapper">
+            <p class="pagination-info">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </p>
+            <nav class="pagination">
+                {# Prev #}
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}" class="page-btn">‹</a>
+                {% else %}
+                <span class="page-btn disabled">‹</span>
+                {% endif %}
+
+                {# Page numbers #}
+                {% for num in page_obj.paginator.page_range %}
+                    {% if num == page_obj.number %}
+                        <span class="page-btn active">{{ num }}</span>
+                    {% elif num == 1 or num == page_obj.paginator.num_pages %}
+                        <a href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}" class="page-btn">{{ num }}</a>
+                    {% elif num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+                        <a href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}" class="page-btn">{{ num }}</a>
+                    {% elif num == page_obj.number|add:"-3" or num == page_obj.number|add:"3" %}
+                        <span class="page-ellipsis">…</span>
+                    {% endif %}
+                {% endfor %}
+
+                {# Next #}
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}" class="page-btn">›</a>
+                {% else %}
+                <span class="page-btn disabled">›</span>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
     </main>
-
 </body>
-
 </html>

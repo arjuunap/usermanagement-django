@@ -2,6 +2,7 @@ from django.shortcuts import render,redirect
 from django.contrib.auth import authenticate,login,logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_control
+from django.contrib import messages
 # Create your views here
 
 
@@ -17,10 +18,18 @@ def login_view(request):
         password = request.POST.get('password')
         user = authenticate(request,username = email ,password = password)
         print(user)
+        
+            
         if user is not None:
+            if  user.is_blocked:
+                messages.error(request,"You are blocked from admin")
+                return redirect("user:login")
             print(user)
             login(request,user)
             return redirect('user:home')
+        else:
+            messages.error(request,"Invalid email or password")
+            return redirect('user:login')
     return render(request,'user/login.html')
 
 

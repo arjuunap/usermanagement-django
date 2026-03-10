@@ -28,7 +28,7 @@
         {% if request.user.is_authenticated %}
             {% if not request.user.is_staff %}
                 <div class="welcome-section">
-                    <h1>Welcome, <span class="username">{{ request.user.username }}</span></h1>
+                    <h1>Welcome, <span class="username">{{ request.user.username|upper }}</span></h1>
                     {% comment %} <p>You're logged in and ready to go</p> {% endcomment %}
                 </div>
             {% endif %}
